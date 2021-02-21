@@ -27,7 +27,7 @@ func Admin() gin.HandlerFunc {
 		/// check if token exits in database
 		userRepo := infrastructure.NewUserRepository(infrastructure.DB)
 		user, _ := userRepo.Get("token = ? and role = ?", adminToken, 2)
-		if user.ID == 0 {
+		if user.UUID.String() == "" {
 			helpers.ReturnYouAreNotAuthorize(g)
 			g.Abort()
 			return

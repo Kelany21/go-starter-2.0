@@ -57,7 +57,6 @@ func RecordCount(model interface{}, query interface{}, args ...interface{}) (cou
 	return
 }
 
-
 // Paging 分页
 func Paging(p *helpers.Param, result interface{}) (*helpers.Paginator, error) {
 	db := p.DB
@@ -86,12 +85,13 @@ func Paging(p *helpers.Param, result interface{}) (*helpers.Paginator, error) {
 	}
 
 	if len(p.Preload) > 0 {
-		db = PreloadD(db , p.Preload)
+		db = PreloadD(db, p.Preload)
 	}
 
 	done := make(chan bool, 1)
 	var paginator helpers.Paginator
 	var count int
+	//var resultCount int
 	var offset int
 
 	go countRecords(db, result, done, &count)
@@ -102,6 +102,11 @@ func Paging(p *helpers.Param, result interface{}) (*helpers.Paginator, error) {
 		offset = (p.Page - 1) * p.Limit
 	}
 
+	//err := db.Model(result).Limit(p.Limit).Offset(offset).Count(&resultCount).Error
+	//if err != nil {
+	//	return nil, err
+	//}
+
 	err := db.Limit(p.Limit).Offset(offset).Find(result).Error
 	if err != nil {
 		return nil, err
@@ -109,7 +114,7 @@ func Paging(p *helpers.Param, result interface{}) (*helpers.Paginator, error) {
 	<-done
 
 	paginator.TotalRecord = count
-	paginator.Records = result
+	//paginator.Records = result
 	paginator.Page = p.Page
 
 	paginator.Offset = offset
@@ -135,32 +140,32 @@ func countRecords(db *gorm.DB, anyType interface{}, done chan bool, count *int) 
 	done <- true
 }
 
-func Page(g *gin.Context) int  {
+func Page(g *gin.Context) int {
 	page, _ := strconv.Atoi(g.DefaultQuery("page", "1"))
-	return  page
+	return page
 }
 
-func Limit(g *gin.Context) int  {
+func Limit(g *gin.Context) int {
 	page, _ := strconv.Atoi(g.DefaultQuery("limit", os.Getenv("LIMIT")))
-	return  page
+	return page
 }
 
-func Order(g *gin.Context, orders ...string)[]string   {
+func Order(g *gin.Context, orders ...string) []string {
 	var o []string
 
-	if  g.Query("order") != ""{
+	if g.Query("order") != "" {
 
 		orders := strings.SplitN(g.Query("order"), "|", -1)
 
-		for _ , order := range orders{
-			o = append(o , order)
+		for _, order := range orders {
+			o = append(o, order)
 		}
 		return o
 
-	}else{
+	} else {
 
-		for _ , orderBy := range orders{
-			o = append(o , orderBy)
+		for _, orderBy := range orders {
+			o = append(o, orderBy)
 		}
 		return o
 

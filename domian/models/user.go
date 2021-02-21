@@ -1,6 +1,7 @@
 package models
 
 import (
+	"github.com/google/uuid"
 	"github.com/jinzhu/gorm"
 	"golang-ddd-starter/helpers"
 )
@@ -10,7 +11,7 @@ import (
 * struct that connect to database
  */
 type User struct {
-	gorm.Model
+	Model
 	Name     string `gorm:"type:varchar(50);" json:"name"`
 	Email    string `gorm:"type:varchar(50);unique_index" json:"email"`
 	Role     int    `gorm:"_" json:"role"`
@@ -48,6 +49,7 @@ type Recover struct {
 * hash password
  */
 func (user *User) BeforeCreate(scope *gorm.Scope) error {
+	user.UUID = uuid.New()
 	if user.Email != "admin@admin.com" {
 		token, _ := helpers.HashPassword(user.Email + user.Password)
 		password, _ := helpers.HashPassword(user.Password)
@@ -74,7 +76,6 @@ func (user *User) BeforeUpdate(scope *gorm.Scope) (err error) {
 func UserFillAbleColumn() []string {
 	return []string{"name", "email", "role", "password", "block"}
 }
-
 
 /**
 * active category only

@@ -1,6 +1,7 @@
 package repos
 
 import (
+	"github.com/google/uuid"
 	"golang-ddd-starter/domian/models"
 	"golang-ddd-starter/helpers"
 )
@@ -12,8 +13,8 @@ type UserRepository interface {
 	FindOrFail(interface{}) (models.User, bool)
 	Get(interface{}, ...interface{}) (models.User, error)
 	GetAll() ([]models.User, error)
-	Paginate(*helpers.Param) (*helpers.Paginator, error)
-	Update(*models.User, uint) error
+	Paginate(*helpers.Param) ([]models.User, *helpers.Paginator, error)
+	Update(*models.User, uuid.UUID) error
 	UpdateWhere(*models.User, interface{}, ...interface{}) error
-	Delete(uint) error
+	Delete(uuid.UUID) error
 }

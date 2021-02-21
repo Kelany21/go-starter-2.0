@@ -1,6 +1,7 @@
 package infrastructure
 
 import (
+	"github.com/google/uuid"
 	"github.com/jinzhu/gorm"
 	"golang-ddd-starter/domian/models"
 	"golang-ddd-starter/domian/repos"
@@ -26,7 +27,7 @@ func (r *UserRepo) CreateOrUpdate(user *models.User) error {
 	return nil
 }
 
-func (r *UserRepo) FirstOrCreate(user *models.User) error  {
+func (r *UserRepo) FirstOrCreate(user *models.User) error {
 	err := r.db.Where(user).FirstOrCreate(&user).Error
 	if err != nil {
 		return err
@@ -70,19 +71,18 @@ func (r *UserRepo) GetAll() ([]models.User, error) {
 	return users, nil
 }
 
-func (r *UserRepo) Paginate(p *helpers.Param) (*helpers.Paginator, error) {
+func (r *UserRepo) Paginate(p *helpers.Param) ([]models.User, *helpers.Paginator, error) {
 	var users []models.User
 	p.DB = DB
 	paginator, err := Paging(p, &users)
 	if err != nil {
-		return nil, err
+		return nil, nil, err
 	}
-	// transform slice
-	paginator.Records = users
-	return paginator, nil
+	paginator.RecordsCount = len(users)
+	return users, paginator, nil
 }
 
-func (r *UserRepo) Update(user *models.User, id uint) error {
+func (r *UserRepo) Update(user *models.User, id uuid.UUID) error {
 	onlyAllowData := UpdateOnlyAllowColumns(user, models.UserFillAbleColumn())
 	err := r.db.Model(&models.User{}).Where("id = ?", id).Updates(onlyAllowData).Error
 	if err != nil {
@@ -104,7 +104,7 @@ func (r *UserRepo) UpdateWhere(user *models.User, query interface{}, args ...int
 	return nil
 }
 
-func (r *UserRepo) Delete(id uint) error {
+func (r *UserRepo) Delete(id uuid.UUID) error {
 	var user models.User
 	err := r.db.Where("id = ?", id).Unscoped().Delete(&user).Error
 	if err != nil {

@@ -8,7 +8,7 @@ import (
 	"strings"
 )
 
-func name(f func(g *gin.Context))(controllerName string, functionName string){
+func name(f func(g *gin.Context)) (controllerName string, functionName string) {
 	path := strings.Split(runtime.FuncForPC(reflect.ValueOf(f).Pointer()).Name(), "/")
 	theName := strings.Split(path[len(path)-1], ".")
 	controllerName = strcase.ToKebab(theName[len(theName)-2])
@@ -25,57 +25,56 @@ func name(f func(g *gin.Context))(controllerName string, functionName string){
 	if strings.Contains(controllerName, ")") {
 		controllerName = strings.ReplaceAll(controllerName, ")", "")
 	}
-	controllerName = strings.Split(controllerName, "-")[0]
+	controllerName = strings.Split(controllerName, "-")[1]
 	return
 }
 
-func urlString(function func(g *gin.Context), params... string) string  {
+func urlString(function func(g *gin.Context), params ...string) string {
 	paramsString := ""
-	for _, param := range params{
+	for _, param := range params {
 		paramsString += "/:" + param
 	}
-	controllerName , functionName := name(function)
-	return controllerName+"/"+functionName+paramsString
+	controllerName, functionName := name(function)
+	return controllerName + "/" + functionName + paramsString
 }
 
-func GET(r *gin.RouterGroup,function func(g *gin.Context), params... string) *gin.RouterGroup{
+func GET(r *gin.RouterGroup, function func(g *gin.Context), params ...string) *gin.RouterGroup {
 	//fmt.Println(urlString(function, params...))
 	r.GET(urlString(function, params...), function)
 	return r
 }
 
-func POST(r *gin.RouterGroup,function func(g *gin.Context), params... string) *gin.RouterGroup{
+func POST(r *gin.RouterGroup, function func(g *gin.Context), params ...string) *gin.RouterGroup {
 	r.POST(urlString(function, params...), function)
 	return r
 }
 
-func DELETE(r *gin.RouterGroup,function func(g *gin.Context), params... string) *gin.RouterGroup{
+func DELETE(r *gin.RouterGroup, function func(g *gin.Context), params ...string) *gin.RouterGroup {
 	r.DELETE(urlString(function, params...), function)
 	return r
 }
 
-func Any(r *gin.RouterGroup,function func(g *gin.Context), params... string) *gin.RouterGroup{
+func Any(r *gin.RouterGroup, function func(g *gin.Context), params ...string) *gin.RouterGroup {
 	r.Any(urlString(function, params...), function)
 	return r
 }
 
-func HEAD(r *gin.RouterGroup,function func(g *gin.Context), params... string) *gin.RouterGroup{
+func HEAD(r *gin.RouterGroup, function func(g *gin.Context), params ...string) *gin.RouterGroup {
 	r.HEAD(urlString(function, params...), function)
 	return r
 }
 
-func OPTIONS(r *gin.RouterGroup,function func(g *gin.Context), params... string) *gin.RouterGroup{
+func OPTIONS(r *gin.RouterGroup, function func(g *gin.Context), params ...string) *gin.RouterGroup {
 	r.OPTIONS(urlString(function, params...), function)
 	return r
 }
 
-func PATCH(r *gin.RouterGroup,function func(g *gin.Context), params... string) *gin.RouterGroup{
+func PATCH(r *gin.RouterGroup, function func(g *gin.Context), params ...string) *gin.RouterGroup {
 	r.PATCH(urlString(function, params...), function)
 	return r
 }
 
-func PUT(r *gin.RouterGroup,function func(g *gin.Context), params... string) *gin.RouterGroup{
+func PUT(r *gin.RouterGroup, function func(g *gin.Context), params ...string) *gin.RouterGroup {
 	r.PUT(urlString(function, params...), function)
 	return r
 }
-

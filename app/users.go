@@ -3,11 +3,13 @@ package app
 import (
 	"github.com/gin-gonic/gin"
 	"github.com/jinzhu/gorm"
+	"golang-ddd-starter/app/transformers"
 	"golang-ddd-starter/app/validations/user"
 	"golang-ddd-starter/domian/models"
 	"golang-ddd-starter/domian/repos"
 	"golang-ddd-starter/helpers"
 	"golang-ddd-starter/infrastructure"
+	"net/http"
 )
 
 type UserApp struct {
@@ -44,10 +46,10 @@ func (a *UserApp) List(g *gin.Context) {
 }
 
 func (a *UserApp) Paginate(g *gin.Context) {
-	paginator, err := a.repo.Paginate(&helpers.Param{
+	users, paginator, err := a.repo.Paginate(&helpers.Param{
 		Page:    Page(g),
 		Limit:   Limit(g),
-		OrderBy: Order(g, "id desc"),
+		OrderBy: Order(g, "uuid desc"),
 		Filters: filter(g),
 		Preload: preload(),
 		ShowSQL: true,
@@ -57,7 +59,8 @@ func (a *UserApp) Paginate(g *gin.Context) {
 		return
 	}
 	// return response
-	helpers.OkResponseWithPaging(g, helpers.DoneGetAllItems(g), paginator)
+	g.JSON(http.StatusOK, transformers.UsersResponse(users, paginator, filterObject()))
+	//helpers.OkResponse(g, helpers.DoneGetItem(g), transformers.UsersResponse(users, paginator, filterObject()))
 }
 
 func (a *UserApp) Create(g *gin.Context) {
@@ -111,7 +114,7 @@ func (a *UserApp) Update(g *gin.Context) {
 		return
 	}
 	/// update allow columns
-	err = a.repo.Update(row, oldRow.ID)
+	err = a.repo.Update(row, oldRow.UUID)
 	// now return row data after transformers
 	helpers.OkResponse(g, helpers.DoneUpdate(g), row)
 }
@@ -123,7 +126,7 @@ func (a *UserApp) Delete(g *gin.Context) {
 		helpers.ReturnNotFound(g, helpers.ItemNotFound(g))
 		return
 	}
-	err := a.repo.Delete(row.ID)
+	err := a.repo.Delete(row.UUID)
 	if err != nil {
 		helpers.ReturnForbidden(g, err.Error())
 		return
@@ -150,6 +153,27 @@ func filter(g *gin.Context) []string {
 		filter = append(filter, `role like "%`+g.Query("role")+`%"`)
 	}
 	return filter
+}
+
+func filterObject() map[string][]helpers.JsonApiFilter {
+	var u = make(map[string][]helpers.JsonApiFilter)
+	u["role"] = []helpers.JsonApiFilter{
+		{
+			FilterKey: "1",
+			Value: map[string]interface{}{
+				"value": "Visitor",
+			},
+			ValueKeys: []string{"value"},
+		},
+		{
+			FilterKey: "2",
+			Value: map[string]interface{}{
+				"value": "Admin",
+			},
+			ValueKeys: []string{"value"},
+		},
+	}
+	return u
 }
 
 /**
