@@ -2,6 +2,7 @@ package groups
 
 import (
 	"github.com/gin-gonic/gin"
+	"golang-ddd-starter/interfaces/routes/auth"
 )
 
 /***
@@ -9,6 +10,7 @@ import (
 * anyone will have access this groups
  */
 func Visitor(r *gin.RouterGroup) *gin.RouterGroup {
+	auth.Routes(r)
 
 	return r
 }

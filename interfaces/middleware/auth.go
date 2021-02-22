@@ -27,7 +27,7 @@ func Auth() gin.HandlerFunc {
 		/// check if token exits in database
 		userRepo := infrastructure.NewUserRepository(infrastructure.DB)
 		user, _ := userRepo.Get("token = ?", adminToken)
-		if user.UUID.String() == "" {
+		if user.UUID.String() == "00000000-0000-0000-0000-000000000000" {
 			helpers.ReturnYouAreNotAuthorize(g)
 			g.Abort()
 			return

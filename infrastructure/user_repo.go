@@ -1,6 +1,7 @@
 package infrastructure
 
 import (
+	"github.com/gin-gonic/gin"
 	"github.com/google/uuid"
 	"github.com/jinzhu/gorm"
 	"golang-ddd-starter/domian/models"
@@ -111,4 +112,40 @@ func (r *UserRepo) Delete(id uuid.UUID) error {
 		return err
 	}
 	return nil
+}
+
+/**
+* check if user exists
+* check if user not blocked
+ */
+func (r *UserRepo) CheckUserExistsNotBlocked(g *gin.Context, email string, token string) (models.User, bool) {
+	// init user struct binding data for user
+	var user models.User
+	/**
+	* check if this email exists database
+	* if this email will not found will return not found
+	* will return 404 code
+	* will select by email if token is empty
+	* if token not empty select by token
+	 */
+	var err error
+	if token != "" {
+		err = r.db.Find(&user, "token = ? ", token).Error
+	} else {
+		err = r.db.Find(&user, "email = ? ", email).Error
+	}
+	if err != nil {
+		helpers.ReturnForbidden(g, err.Error())
+		return user, false
+	}
+	if user.UUID.String() == "00000000-0000-0000-0000-000000000000" {
+		helpers.ReturnNotFound(g, "We not found this user on system")
+		return user, false
+	}
+	// if user block
+	if user.Block == 1 {
+		helpers.ReturnForbidden(g, "You are blocked from the system")
+		return user, false
+	}
+	return user, true
 }

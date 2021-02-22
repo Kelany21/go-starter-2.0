@@ -1,6 +1,7 @@
 package repos
 
 import (
+	"github.com/gin-gonic/gin"
 	"github.com/google/uuid"
 	"golang-ddd-starter/domian/models"
 	"golang-ddd-starter/helpers"
@@ -17,4 +18,5 @@ type UserRepository interface {
 	Update(*models.User, uuid.UUID) error
 	UpdateWhere(*models.User, interface{}, ...interface{}) error
 	Delete(uuid.UUID) error
+	CheckUserExistsNotBlocked(*gin.Context, string, string) (models.User, bool)
 }

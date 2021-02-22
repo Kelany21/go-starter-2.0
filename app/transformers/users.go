@@ -9,6 +9,20 @@ import (
 /**
 * stander user response
  */
+func LoginResponse(user models.User) map[string]interface{} {
+	var u = make(map[string]interface{})
+	u["name"] = user.Name
+	u["email"] = user.Email
+	u["role"] = user.Role
+	u["token"] = user.Token
+	u["block"] = user.Block
+
+	return u
+}
+
+/**
+* stander user response
+ */
 func UserTransform(user models.User) map[string]interface{} {
 	var u = make(map[string]interface{})
 	u["name"] = user.Name

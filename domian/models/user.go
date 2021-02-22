@@ -29,6 +29,13 @@ type Login struct {
 }
 
 /**
+* use this struct when visitor login
+ */
+type Logout struct {
+	Token string `json:"token"`
+}
+
+/**
 * use this struct when reset email
  */
 type Reset struct {

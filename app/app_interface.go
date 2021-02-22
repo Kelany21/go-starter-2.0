@@ -15,4 +15,5 @@ type ApplicationInterface interface {
 
 func InitApps(db *gorm.DB) {
 	NewUserApplication(db)
+	NewAuthApplication(db)
 }
