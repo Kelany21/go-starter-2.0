@@ -8,12 +8,11 @@ import (
 type ApplicationInterface interface {
 	Show(*gin.Context)
 	List(*gin.Context)
-	Paginate(*gin.Context)
 	Create(*gin.Context)
 	Update(*gin.Context)
 	Delete(*gin.Context)
 }
 
-func InitApps(db *gorm.DB)  {
+func InitApps(db *gorm.DB) {
 	NewUserApplication(db)
 }

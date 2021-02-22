@@ -9,7 +9,7 @@ import (
 /**
 * stander user response
  */
-func UserResponse(user models.User) map[string]interface{} {
+func UserTransform(user models.User) map[string]interface{} {
 	var u = make(map[string]interface{})
 	u["name"] = user.Name
 	u["email"] = user.Email
@@ -57,39 +57,12 @@ func UsersResponse(users []models.User, paginator *helpers.Paginator, filters ma
 	var jsonapiData []helpers.JsonApiData
 	var jsonapiIncluded []helpers.JsonApiIncluded
 	for _, user := range users {
-		relations := make(map[string]helpers.Relationships)
-		for includeType, includes := range UserIncludes(user) {
-			var relation helpers.Relationships
-			for _, value := range includes.([]map[string]interface{}) {
-				attributes := make(map[string]interface{})
-				if value["attributes"] != nil {
-					attributes = value["attributes"].(map[string]interface{})
-				}
-				relationships := make(map[string]helpers.Relationships)
-				if value["relationships"] != nil {
-					relationships = value["relationships"].(map[string]helpers.Relationships)
-				}
-				include := helpers.JsonApiIncluded{
-					Type:          includeType,
-					Id:            value["id"].(uuid.UUID).String(),
-					Attributes:    attributes,
-					Relationships: relationships,
-				}
-				jsonapiIncluded = append(jsonapiIncluded, include)
-
-				relation.Data = append(relation.Data, helpers.Relationship{
-					Type: include.Type,
-					Id:   include.Id,
-				})
-			}
-			relations[includeType] = relation
+		prepareObject := helpers.JsonApiPrepare{
+			Includes:   UserIncludes(user),
+			UUID:       user.UUID.String(),
+			Attributes: UserTransform(user),
 		}
-		jsonapiData = append(jsonapiData, helpers.JsonApiData{
-			Type:          "user",
-			Id:            user.UUID.String(),
-			Attributes:    UserResponse(user),
-			Relationships: relations,
-		})
+		helpers.PrepareResponse(&jsonapiData, &jsonapiIncluded, prepareObject)
 	}
 	return helpers.JsonApi{
 		Data:     jsonapiData,
@@ -99,6 +72,30 @@ func UsersResponse(users []models.User, paginator *helpers.Paginator, filters ma
 			Pagination: helpers.PaginationObject(paginator),
 		},
 		Links: helpers.PaginationLinks(paginator, "http://127.0.0.1:9090/admin/user/paginate"),
+	}
+
+}
+
+/**
+* stander the Multi users response
+ */
+func UserResponse(user models.User) helpers.JsonApi {
+	var jsonapiData []helpers.JsonApiData
+	var jsonapiIncluded []helpers.JsonApiIncluded
+	prepareObject := helpers.JsonApiPrepare{
+		Includes:   UserIncludes(user),
+		UUID:       user.UUID.String(),
+		Attributes: UserTransform(user),
+	}
+	helpers.PrepareResponse(&jsonapiData, &jsonapiIncluded, prepareObject)
+	return helpers.JsonApi{
+		Data:     jsonapiData,
+		Included: jsonapiIncluded,
+		Meta: helpers.JsonApiMeta{
+			Filters:    nil,
+			Pagination: nil,
+		},
+		Links: nil,
 	}
 
 }

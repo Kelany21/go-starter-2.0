@@ -1,6 +1,7 @@
 package helpers
 
 import (
+	"github.com/google/uuid"
 	"strconv"
 	"strings"
 )
@@ -46,6 +47,52 @@ type JsonApi struct {
 	Links    map[string]string `json:"links"`
 }
 
+type JsonApiPrepare struct {
+	Includes   map[string]interface{}
+	UUID       string
+	Attributes map[string]interface{}
+}
+
+func PrepareResponse(jsonapiData *[]JsonApiData, jsonapiIncluded *[]JsonApiIncluded, prepareObject JsonApiPrepare) {
+	relations := make(map[string]Relationships)
+	for includeType, includes := range prepareObject.Includes {
+		var relation Relationships
+		for _, value := range includes.([]map[string]interface{}) {
+			attributes := make(map[string]interface{})
+			if value["attributes"] != nil {
+				attributes = value["attributes"].(map[string]interface{})
+			} else {
+				attributes = nil
+			}
+			relationships := make(map[string]Relationships)
+			if value["relationships"] != nil {
+				relationships = value["relationships"].(map[string]Relationships)
+			} else {
+				relationships = nil
+			}
+			include := JsonApiIncluded{
+				Type:          includeType,
+				Id:            value["id"].(uuid.UUID).String(),
+				Attributes:    attributes,
+				Relationships: relationships,
+			}
+			*jsonapiIncluded = append(*jsonapiIncluded, include)
+
+			relation.Data = append(relation.Data, Relationship{
+				Type: include.Type,
+				Id:   include.Id,
+			})
+		}
+		relations[includeType] = relation
+	}
+	*jsonapiData = append(*jsonapiData, JsonApiData{
+		Type:          "user",
+		Id:            prepareObject.UUID,
+		Attributes:    prepareObject.Attributes,
+		Relationships: relations,
+	})
+}
+
 func PaginationObject(paginator *Paginator) map[string]int {
 	var u = make(map[string]int)
 	u["total"] = paginator.TotalRecord
@@ -63,12 +110,13 @@ func PaginationLinks(paginator *Paginator, url string) map[string]string {
 	} else {
 		url += "?page="
 	}
+	limitQuery := "&limit=" + strconv.Itoa(paginator.Limit)
 	var u = make(map[string]string)
-	u["self"] = url + strconv.Itoa(paginator.Page)
-	u["next"] = url + strconv.Itoa(paginator.NextPage)
-	u["prev"] = url + strconv.Itoa(paginator.PrevPage)
-	u["first"] = url + "1"
-	u["last"] = url + strconv.Itoa(paginator.TotalPage)
+	u["self"] = url + strconv.Itoa(paginator.Page) + limitQuery
+	u["next"] = url + strconv.Itoa(paginator.NextPage) + limitQuery
+	u["prev"] = url + strconv.Itoa(paginator.PrevPage) + limitQuery
+	u["first"] = url + "1" + limitQuery
+	u["last"] = url + strconv.Itoa(paginator.TotalPage) + limitQuery
 
 	return u
 }

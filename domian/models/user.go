@@ -49,8 +49,8 @@ type Recover struct {
 * hash password
  */
 func (user *User) BeforeCreate(scope *gorm.Scope) error {
-	user.UUID = uuid.New()
 	if user.Email != "admin@admin.com" {
+		user.UUID = uuid.New()
 		token, _ := helpers.HashPassword(user.Email + user.Password)
 		password, _ := helpers.HashPassword(user.Password)
 		scope.SetColumn("token", token)

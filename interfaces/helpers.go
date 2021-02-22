@@ -25,7 +25,12 @@ func name(f func(g *gin.Context)) (controllerName string, functionName string) {
 	if strings.Contains(controllerName, ")") {
 		controllerName = strings.ReplaceAll(controllerName, ")", "")
 	}
-	controllerName = strings.Split(controllerName, "-")[1]
+	splits := strings.Split(controllerName, "-")
+	if splits[0] != "" {
+		controllerName = splits[0]
+	} else {
+		controllerName = splits[1]
+	}
 	return
 }
 

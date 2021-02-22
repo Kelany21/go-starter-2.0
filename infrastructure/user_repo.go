@@ -46,7 +46,7 @@ func (r *UserRepo) Create(user *models.User) error {
 
 func (r *UserRepo) FindOrFail(id interface{}) (models.User, bool) {
 	var user models.User
-	err := r.db.Where("id = ?", id).First(&user).Error
+	err := r.db.Where("uuid = ?", id).First(&user).Error
 	if err != nil {
 		return models.User{}, false
 	}
@@ -84,11 +84,11 @@ func (r *UserRepo) Paginate(p *helpers.Param) ([]models.User, *helpers.Paginator
 
 func (r *UserRepo) Update(user *models.User, id uuid.UUID) error {
 	onlyAllowData := UpdateOnlyAllowColumns(user, models.UserFillAbleColumn())
-	err := r.db.Model(&models.User{}).Where("id = ?", id).Updates(onlyAllowData).Error
+	err := r.db.Model(&models.User{}).Where("uuid = ?", id).Updates(onlyAllowData).Error
 	if err != nil {
 		return err
 	}
-	err = r.db.Where("id = ?", id).Find(&user).Error
+	err = r.db.Where("uuid = ?", id).Find(&user).Error
 	if err != nil {
 		return err
 	}
@@ -106,7 +106,7 @@ func (r *UserRepo) UpdateWhere(user *models.User, query interface{}, args ...int
 
 func (r *UserRepo) Delete(id uuid.UUID) error {
 	var user models.User
-	err := r.db.Where("id = ?", id).Unscoped().Delete(&user).Error
+	err := r.db.Where("uuid = ?", id).Unscoped().Delete(&user).Error
 	if err != nil {
 		return err
 	}

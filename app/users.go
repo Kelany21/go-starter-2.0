@@ -27,26 +27,18 @@ var _ ApplicationInterface = &UserApp{}
 
 func (a *UserApp) Show(g *gin.Context) {
 	// find this row or return 404
-	row, find := a.repo.FindOrFail(g.Param("id"))
+	row, find := a.repo.FindOrFail(g.Param("uuid"))
 	if !find {
 		helpers.ReturnNotFound(g, helpers.ItemNotFound(g))
 		return
 	}
 	// now return row data after transformers
-	helpers.OkResponse(g, helpers.DoneGetItem(g), row)
+	//helpers.OkResponse(g, helpers.DoneGetItem(g), row)
+	g.JSON(http.StatusOK, transformers.UserResponse(row))
 }
 
 func (a *UserApp) List(g *gin.Context) {
-	rows, err := a.repo.GetAll()
-	if err != nil {
-		helpers.ReturnForbidden(g, err.Error())
-		return
-	}
-	helpers.OkResponse(g, helpers.DoneGetItem(g), rows)
-}
-
-func (a *UserApp) Paginate(g *gin.Context) {
-	users, paginator, err := a.repo.Paginate(&helpers.Param{
+	rows, paginator, err := a.repo.Paginate(&helpers.Param{
 		Page:    Page(g),
 		Limit:   Limit(g),
 		OrderBy: Order(g, "uuid desc"),
@@ -59,8 +51,8 @@ func (a *UserApp) Paginate(g *gin.Context) {
 		return
 	}
 	// return response
-	g.JSON(http.StatusOK, transformers.UsersResponse(users, paginator, filterObject()))
-	//helpers.OkResponse(g, helpers.DoneGetItem(g), transformers.UsersResponse(users, paginator, filterObject()))
+	g.JSON(http.StatusOK, transformers.UsersResponse(rows, paginator, filterObject()))
+	//helpers.OkResponse(g, helpers.DoneGetItem(g), transformers.UsersResponse(rows, paginator, filterObject()))
 }
 
 func (a *UserApp) Create(g *gin.Context) {
@@ -87,7 +79,8 @@ func (a *UserApp) Create(g *gin.Context) {
 		return
 	}
 	//now return row data after transformers
-	helpers.OkResponse(g, helpers.DoneCreateItem(g), row)
+	g.JSON(http.StatusOK, transformers.UserResponse(*row))
+	//helpers.OkResponse(g, helpers.DoneCreateItem(g), row)
 }
 
 func (a *UserApp) Update(g *gin.Context) {
@@ -98,7 +91,7 @@ func (a *UserApp) Update(g *gin.Context) {
 		return
 	}
 	// find this row or return 404
-	oldRow, find := a.repo.FindOrFail(g.Param("id"))
+	oldRow, find := a.repo.FindOrFail(g.Param("uuid"))
 	if !find {
 		helpers.ReturnNotFound(g, helpers.ItemNotFound(g))
 		return
@@ -116,12 +109,13 @@ func (a *UserApp) Update(g *gin.Context) {
 	/// update allow columns
 	err = a.repo.Update(row, oldRow.UUID)
 	// now return row data after transformers
-	helpers.OkResponse(g, helpers.DoneUpdate(g), row)
+	g.JSON(http.StatusOK, transformers.UserResponse(*row))
+	//helpers.OkResponse(g, helpers.DoneUpdate(g), row)
 }
 
 func (a *UserApp) Delete(g *gin.Context) {
 	// find this row or return 404
-	row, find := a.repo.FindOrFail(g.Param("id"))
+	row, find := a.repo.FindOrFail(g.Param("uuid"))
 	if !find {
 		helpers.ReturnNotFound(g, helpers.ItemNotFound(g))
 		return
@@ -132,7 +126,8 @@ func (a *UserApp) Delete(g *gin.Context) {
 		return
 	}
 	// now return row data after transformers
-	helpers.OkResponseWithOutData(g, helpers.DoneDelete(g))
+	g.JSON(http.StatusOK, transformers.UserResponse(row))
+	//helpers.OkResponseWithOutData(g, helpers.DoneDelete(g))
 }
 
 /**
