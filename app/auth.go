@@ -197,9 +197,8 @@ func (a *AuthApp) Recover(g *gin.Context) {
 * notice user that his password has been updated
  */
 func sendRecoverPasswordEmail(user models.User, password string) {
-	msg := "Your Password has been updated to (" + password + ")" + "\n"
-	msg += "Do not worry your password is encrypted , this just note for your activity" + "\n"
-	msg += os.Getenv("RESET_PASSWORD_URL") + "?token=" + user.Token
+	msg := "<h6>Your Password has been updated to (" + password + ")</h6>" + "<br>"
+	msg += "<h6>Do not worry your password is encrypted , this just note for your activity</h6>"
 	helpers.SendMail(user.Email, "Your password has been updated", msg)
 }
 
@@ -237,7 +236,7 @@ func (a *AuthApp) Reset(g *gin.Context) {
 * send it to user email
  */
 func sendRestLink(user models.User) {
-	msg := "Your Request To reset your password if you take this action click on this link to reset your password " + "\n"
-	msg += os.Getenv("RESET_PASSWORD_URL") + "?token=" + user.Token
+	msg := "<h6> Your Request To reset your password if you take this action click on this link to reset your password </h6>" + "<br>"
+	msg += `<a href="` + os.Getenv("RESET_PASSWORD_URL") + user.Token + `">Reset Password</a>`
 	helpers.SendMail(user.Email, "Reset Password Request", msg)
 }

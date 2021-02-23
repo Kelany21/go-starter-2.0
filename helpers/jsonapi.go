@@ -18,14 +18,14 @@ type Relationships struct {
 type JsonApiData struct {
 	Type          string                   `json:"type"`
 	Id            string                   `json:"id"`
-	Attributes    map[string]interface{}   `json:"attributes"`
+	Attributes    interface{}              `json:"attributes"`
 	Relationships map[string]Relationships `json:"relationships"`
 }
 
 type JsonApiIncluded struct {
 	Type          string                   `json:"type"`
 	Id            string                   `json:"id"`
-	Attributes    map[string]interface{}   `json:"attributes"`
+	Attributes    interface{}              `json:"attributes"`
 	Relationships map[string]Relationships `json:"relationships"`
 }
 
@@ -47,15 +47,90 @@ type JsonApi struct {
 	Links    map[string]string `json:"links"`
 }
 
+type JsonApiInterface interface {
+	GetID() string
+	GetType() string
+	GetIncludes() map[string]interface{}
+}
+
 type JsonApiPrepare struct {
 	Includes   map[string]interface{}
 	UUID       string
-	Attributes map[string]interface{}
+	Attributes interface{}
 }
 
-func PrepareResponse(jsonapiData *[]JsonApiData, jsonapiIncluded *[]JsonApiIncluded, prepareObject JsonApiPrepare) {
+/**
+* stander the Multi items response
+ */
+func ItemsResponse(jsonapiData []JsonApiData, jsonapiIncluded []JsonApiIncluded, paginator *Paginator, filters map[string][]JsonApiFilter) JsonApi {
+	return JsonApi{
+		Data:     jsonapiData,
+		Included: jsonapiIncluded,
+		Meta: JsonApiMeta{
+			Filters:    filters,
+			Pagination: PaginationObject(paginator),
+		},
+		Links: PaginationLinks(paginator, "http://127.0.0.1:9090/admin/user/paginate"),
+	}
+}
+
+/**
+* stander the item response
+ */
+func ItemResponse(item JsonApiInterface) JsonApi {
+	var jsonapiData []JsonApiData
+	var jsonapiIncluded []JsonApiIncluded
 	relations := make(map[string]Relationships)
-	for includeType, includes := range prepareObject.Includes {
+	for includeType, includes := range item.GetIncludes() {
+		var relation Relationships
+		for _, value := range includes.([]map[string]interface{}) {
+			attributes := make(map[string]interface{})
+			if value["attributes"] != nil {
+				attributes = value["attributes"].(map[string]interface{})
+			} else {
+				attributes = nil
+			}
+			relationships := make(map[string]Relationships)
+			if value["relationships"] != nil {
+				relationships = value["relationships"].(map[string]Relationships)
+			} else {
+				relationships = nil
+			}
+			include := JsonApiIncluded{
+				Type:          includeType,
+				Id:            value["id"].(uuid.UUID).String(),
+				Attributes:    attributes,
+				Relationships: relationships,
+			}
+			jsonapiIncluded = append(jsonapiIncluded, include)
+
+			relation.Data = append(relation.Data, Relationship{
+				Type: include.Type,
+				Id:   include.Id,
+			})
+		}
+		relations[includeType] = relation
+	}
+	jsonapiData = append(jsonapiData, JsonApiData{
+		Type:          item.GetType(),
+		Id:            item.GetID(),
+		Attributes:    item,
+		Relationships: relations,
+	})
+	return JsonApi{
+		Data:     jsonapiData,
+		Included: jsonapiIncluded,
+		Meta: JsonApiMeta{
+			Filters:    nil,
+			Pagination: nil,
+		},
+		Links: nil,
+	}
+}
+
+func PrepareItemsResponse(jsonapiData *[]JsonApiData, jsonapiIncluded *[]JsonApiIncluded, item JsonApiInterface) {
+	relations := make(map[string]Relationships)
+	for includeType, includes := range item.GetIncludes() {
 		var relation Relationships
 		for _, value := range includes.([]map[string]interface{}) {
 			attributes := make(map[string]interface{})
@@ -86,9 +161,9 @@ func PrepareResponse(jsonapiData *[]JsonApiData, jsonapiIncluded *[]JsonApiInclu
 		relations[includeType] = relation
 	}
 	*jsonapiData = append(*jsonapiData, JsonApiData{
-		Type:          "user",
-		Id:            prepareObject.UUID,
-		Attributes:    prepareObject.Attributes,
+		Type:          item.GetType(),
+		Id:            item.GetID(),
+		Attributes:    item,
 		Relationships: relations,
 	})
 }

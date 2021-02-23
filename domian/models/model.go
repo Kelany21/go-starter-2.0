@@ -6,8 +6,8 @@ import (
 )
 
 type Model struct {
-	UUID      uuid.UUID `gorm:"primary_key"`
-	CreatedAt time.Time
-	UpdatedAt time.Time
-	DeletedAt *time.Time `sql:"index"`
+	UUID      uuid.UUID  `gorm:"primary_key" json:"-"`
+	CreatedAt time.Time  `json:"created_at"`
+	UpdatedAt time.Time  `json:"updated_at"`
+	DeletedAt *time.Time `sql:"index" json:"deleted_at"`
 }

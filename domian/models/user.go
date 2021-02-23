@@ -15,9 +15,50 @@ type User struct {
 	Name     string `gorm:"type:varchar(50);" json:"name"`
 	Email    string `gorm:"type:varchar(50);unique_index" json:"email"`
 	Role     int    `gorm:"_" json:"role"`
-	Password string `gorm:"size:255" json:"password"`
+	Password string `gorm:"size:255" json:"-"`
 	Token    string `gorm:"size:255" json:"token"`
 	Block    int    `gorm:"_" json:"block"`
+}
+
+//UserApp implements the UserApplication interface
+var _ helpers.JsonApiInterface = &User{}
+
+func (user User) GetID() string {
+	return user.UUID.String()
+}
+
+func (user User) GetType() string {
+	return "user"
+}
+
+/**
+* user included data
+ */
+func (user User) GetIncludes() map[string]interface{} {
+	var u = make(map[string]interface{})
+	u["action"] = UserActions(user)
+
+	return u
+}
+
+/**
+* user included actions
+ */
+func UserActions(user User) []map[string]interface{} {
+	u := []map[string]interface{}{
+		{
+			"id": uuid.New(),
+			"attributes": map[string]interface{}{
+				"endpoint_url": ";jobnvdf" + user.UUID.String(),
+				"method":       "GET",
+				"label":        "vd",
+				"key":          "vcxv",
+			},
+			"relationships": nil,
+		},
+	}
+
+	return u
 }
 
 /**
