@@ -19,6 +19,14 @@ func ReturnBadRequest(g *gin.Context) {
 }
 
 /**
+* conflict
+ */
+func ReturnStatusUnsupportedMediaType(g *gin.Context) {
+	http.Error(g.Writer, "Unsupported Media Type", http.StatusUnsupportedMediaType)
+	return
+}
+
+/**
 * Duplicate data
  */
 func ReturnDuplicateData(g *gin.Context, inputName string) {
